@@ -44,12 +44,41 @@ exports.scrapeTagPage = function(tag) {
 
             var data = scrape(body)
 
-            if (data) {
-                var media = data.entry_data.TagPage[0].tag.media;
+            if(data &&
+                data.entry_data &&
+                data.entry_data.TagPage
+            ) {
+                var media = (function(TagPage) {
+                    if (TagPage.graphql &&
+                        TagPage.graphql.hashtag &&
+                        TagPage.graphql.hashtag.edge_hashtag_to_media
+                    ) {
+                        var model = TagPage.graphql.hashtag.edge_hashtag_to_media
+
+                        model.edges = model.edges.map(function(item){
+                            item = item.node
+                            item.caption = item.edge_media_to_caption.edges[0].node.text
+                            item.comment = item.edge_media_to_comment
+                            item.liked_by = item.edge_liked_by
+                            return item
+                        })
+
+                        return {
+                            count: model.count,
+                            nodes: model.edges,
+                            edges: model.edges
+                        };
+                    }
+                    else {
+                        TagPage.tag.media.edges = TagPage.tag.media.edges || TagPage.tag.media.nodes
+                        return TagPage.tag.media
+                    }
+                })(data.entry_data.TagPage[0]);
+
                 resolve({
                     total: media.count,
                     count: media.nodes.length,
-                    media: media.nodes
+                    media: media.edges
                 });
             }
             else {
