@@ -1,6 +1,6 @@
 {
-  "name": "instagram-tagscrape",
-  "version": "1.0.2",
+  "name": "instagram-tagscrap-filecache",
+  "version": "1.0.3",
   "description": "NPM module for loading images from Instagram by hashtag without API access by means of scraping.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nordhagen/instagram-tagscrape.git"
+    "url": "git+https://github.com/ndotcom/instagram-tagscrape.git"
   },
   "keywords": [
     "instagram",
@@ -18,9 +18,9 @@
   "author": "Øyvind Nordhagen <@nordhagen>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nordhagen/instagram-tagscrape/issues"
+    "url": "https://github.com/ndotcom/instagram-tagscrape/issues"
   },
-  "homepage": "https://github.com/nordhagen/instagram-tagscrape#readme",
+  "homepage": "https://github.com/ndotcom/instagram-tagscrape#readme",
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "3.1.2",

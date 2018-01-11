@@ -1,15 +1,13 @@
-instagram-tagscrape
+instagram-tagscrap-filecache
 ==============
 NodeJS module for loading posts from Instagram by hashtag, individual post pages and locationpages without API access by means of scraping.
-
-[![Build Status](https://travis-ci.org/nordhagen/instagram-tagscrape.svg?branch=master)](https://travis-ci.org/nordhagen/instagram-tagscrape)
 
 ## Disclamer
 Instagram has gone to great lengths to prevent scraping and other unauthorized access to their public content. This module is dependant on the markup the public-facing instagram.com. Should that change this module might also stop working as intended. It also only loads the 17 posts that are displayed on first-load without following pagination to load more images. You should take this into consideration when deciding whether this module will work for you.
 
 ## Installation
 
-`npm install instagram-tagscrape`
+`npm install instagram-tagscrap-filecache`
 
 ## Usage
 
@@ -18,7 +16,7 @@ The most basic usage will allow you to load the first 17 posts for any given has
 ### Tage page scraping
 
 ```javascript
-var ig = require('instagram-tagscrape');
+var ig = require('instagram-tagscrap-filecache');
 
 ig.scrapeTagPage('bernie').then(function(result){
     console.dir(result);
@@ -63,7 +61,7 @@ As you can see, only the basic info required for listing images is returned. If 
 ### Deep tag page scraping
 
 ```javascript
-var ig = require('instagram-tagscrape');
+var ig = require('instagram-tagscrap-filecache');
 
 ig.deepScrapeTagPage('bernie').then(function(result){
     console.dir(result);
@@ -77,7 +75,7 @@ The response from this call is so vast that to see what it contains I recommend 
 The post page scraping method takes a `code` argument (like the one returned for each post via the `scrapeTagPage`).
 
 ```javascript
-var ig = require('instagram-tagscrape');
+var ig = require('instagram-tagscrap-filecache');
 
 ig.scrapePostPage('BMm39DKD6DB').then(function(result){
     console.dir(result);
@@ -89,7 +87,7 @@ ig.scrapePostPage('BMm39DKD6DB').then(function(result){
 The location page scraping method takes a numeric `id` argument (like the one returned for each post via the `scrapeTagPage`) and returns lat/lng coordinates for the post location among many other things.
 
 ```javascript
-var ig = require('instagram-tagscrape');
+var ig = require('instagram-tagscrap-filecache');
 
 ig.scrapeLocationPage(542401).then(function(result){
     console.dir(result);
