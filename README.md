@@ -16,7 +16,8 @@ The most basic usage will allow you to load the first 17 posts for any given has
 ### Tage page scraping
 
 ```javascript
-var ig = require('instagram-tagscrap-filecache');
+var Instagram = require('instagram-tagscrap-filecache');
+var ig = new Instagram();
 
 ig.scrapeTagPage('bernie').then(function(result){
     console.dir(result);
