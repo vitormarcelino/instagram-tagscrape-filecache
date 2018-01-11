@@ -8,19 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ndotcom/instagram-tagscrape.git"
+    "url": "git+https://github.com/ndotcom/instagram-tagscrape-filecache.git"
   },
   "keywords": [
     "instagram",
     "hashtag",
     "scrape"
   ],
-  "author": "Øyvind Nordhagen <@nordhagen>",
+  "author": "N.com <@ndotcom>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ndotcom/instagram-tagscrape/issues"
+    "url": "https://github.com/ndotcom/instagram-tagscrape-filecache/issues"
   },
-  "homepage": "https://github.com/ndotcom/instagram-tagscrape#readme",
+  "homepage": "https://github.com/ndotcom/instagram-tagscrape-filecache#readme",
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "3.1.2",
