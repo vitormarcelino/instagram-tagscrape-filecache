@@ -1,9 +1,12 @@
 const request = require('request'),
+    extend = require('extend'),
     Promise = require('bluebird'),
+    CachemanFile = require('cacheman-file'),
     listURL = 'https://www.instagram.com/explore/tags/',
     postURL = 'https://www.instagram.com/p/',
     locURL  = 'https://www.instagram.com/explore/locations/',
     dataExp = /window\._sharedData\s?=\s?({.+);<\/script>/;
+
 
 var scrape = function(html) {
     try {
@@ -21,9 +24,60 @@ var scrape = function(html) {
 };
 
 
-var Instagram = function (opts) {
+var Instagram = function (options) {
     const self = this;
 
+    this._config = {};
+
+    extend(this._config, {
+        cache : {
+            prefix : 'ig-',
+            isIgnore : false,
+            ttl : 60 * 30, // 30 min
+            tmpDir : null
+        }
+    }, options);
+
+    if(!this._config.cache.isIgnore) {
+        this._cache = new CachemanFile({
+            tmpDir: this._config.tmpDir
+        });
+    }
+};
+
+Instagram.prototype._request = function(id, uri, callback){
+    const self = this;
+    const req = function(callback){
+        request(uri, callback);
+    };
+    const key = this._config.cache.prefix + id;
+
+    if(!this._cache || this._config.cache.isIgnore){
+        req(callback);
+        return;
+    }
+
+    this._cache.get(key, function(err, value){
+        if (err) throw err;
+
+        if(value === null){
+            req(function(reqErr, response, body){
+                if (!reqErr && response.statusCode === 200) {
+                    callback(reqErr, response, body);
+
+                    self._cache.set(key, response, self._config.cache.ttl, function (err, value) {
+                        if (err) throw err;
+                    });
+
+                } else {
+                    throw err;
+                }
+            });
+
+        } else {
+            callback(null, value, value.body);
+        }
+    });
 };
 
 Instagram.prototype.deepScrapeTagPage = function(tag){
@@ -61,10 +115,12 @@ Instagram.prototype.deepScrapeTagPage = function(tag){
 
 
 Instagram.prototype.scrapeTagPage = function(tag){
+    const self = this;
+
     return new Promise(function(resolve, reject){
         if (!tag) return reject(new Error('Argument "tag" must be specified'));
 
-        request(listURL + tag, function(err, response, body){
+        self._request('tag-'+tag, listURL + tag, function(err, response, body){
             if (err) return reject(err);
 
             var data = scrape(body)
@@ -114,10 +170,12 @@ Instagram.prototype.scrapeTagPage = function(tag){
 };
 
 Instagram.prototype.scrapePostPage = function(code){
+    const self = this;
+
     return new Promise(function(resolve, reject){
         if (!code) return reject(new Error('Argument "code" must be specified'));
 
-        request(postURL + code, function(err, response, body){
+        self._request('post-'+code, postURL + code, function(err, response, body){
             var data = scrape(body);
             if (data) {
                 resolve(data.entry_data.PostPage[0].graphql.shortcode_media); 
@@ -130,10 +188,12 @@ Instagram.prototype.scrapePostPage = function(code){
 };
 
 Instagram.prototype.scrapeLocationPage = function(id){
+    const self = this;
+
     return new Promise(function(resolve, reject){
         if (!id) return reject(new Error('Argument "id" must be specified'));
-        
-        request(locURL + id, function(err, response, body){
+
+        self._request('loc-'+id, locURL + id, function(err, response, body){
             var data = scrape(body);
 
             if (data) {
