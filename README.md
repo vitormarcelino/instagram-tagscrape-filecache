@@ -69,7 +69,8 @@ As you can see, only the basic info required for listing images is returned. If 
 ### Deep tag page scraping
 
 ```javascript
-var ig = require('instagram-tagscrap-filecache');
+var Instagram = require('instagram-tagscrap-filecache');
+var ig = new Instagram();
 
 ig.deepScrapeTagPage('bernie').then(function(result){
     console.dir(result);
@@ -83,7 +84,8 @@ The response from this call is so vast that to see what it contains I recommend 
 The post page scraping method takes a `code` argument (like the one returned for each post via the `scrapeTagPage`).
 
 ```javascript
-var ig = require('instagram-tagscrap-filecache');
+var Instagram = require('instagram-tagscrap-filecache');
+var ig = new Instagram();
 
 ig.scrapePostPage('BMm39DKD6DB').then(function(result){
     console.dir(result);
@@ -95,7 +97,8 @@ ig.scrapePostPage('BMm39DKD6DB').then(function(result){
 The location page scraping method takes a numeric `id` argument (like the one returned for each post via the `scrapeTagPage`) and returns lat/lng coordinates for the post location among many other things.
 
 ```javascript
-var ig = require('instagram-tagscrap-filecache');
+var Instagram = require('instagram-tagscrap-filecache');
+var ig = new Instagram();
 
 ig.scrapeLocationPage(542401).then(function(result){
     console.dir(result);
