@@ -138,6 +138,7 @@ Instagram.prototype.scrapeTagPage = function(tag){
 
                         model.edges = model.edges.map(function(item){
                             item = item.node
+                            item.code = item.shortcode
                             item.caption = item.edge_media_to_caption.edges[0].node.text
                             item.comment = item.edge_media_to_comment
                             item.liked_by = item.edge_liked_by
