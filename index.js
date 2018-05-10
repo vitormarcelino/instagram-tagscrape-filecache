@@ -58,19 +58,19 @@ Instagram.prototype._request = function(id, uri, callback){
     }
 
     this._cache.get(key, function(err, value){
-        if (err) throw err;
+        if (err) {
+            callback(err);
+            return;
+        }
 
         if(value === null){
             req(function(reqErr, response, body){
                 if (!reqErr && response.statusCode === 200) {
-                    callback(reqErr, response, body);
-
                     self._cache.set(key, response, self._config.cache.ttl, function (err, value) {
-                        if (err) throw err;
+                        callback(err, response, body);
                     });
-
                 } else {
-                    throw err;
+                    callback(reqErr);
                 }
             });
 
