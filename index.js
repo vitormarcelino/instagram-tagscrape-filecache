@@ -4,16 +4,16 @@ const request = require('request'),
     CachemanFile = require('cacheman-file'),
     listURL = 'https://www.instagram.com/explore/tags/',
     postURL = 'https://www.instagram.com/p/',
-    locURL  = 'https://www.instagram.com/explore/locations/',
+    locURL = 'https://www.instagram.com/explore/locations/',
     dataExp = /window\._sharedData\s?=\s?({.+);<\/script>/;
 
 
-var scrape = function(html) {
+var scrape = function (html) {
     try {
         var dataString = html.match(dataExp)[1];
         var json = JSON.parse(dataString);
     }
-    catch(e) {
+    catch (e) {
         if (process.env.NODE_ENV != 'production') {
             console.error('The HTML returned from instagram was not suitable for scraping');
         }
@@ -30,41 +30,41 @@ var Instagram = function (options) {
     this._config = {};
 
     extend(this._config, {
-        cache : {
-            prefix : 'ig-',
-            isIgnore : false,
-            ttl : 60 * 30, // 30 min
-            tmpDir : null
+        cache: {
+            prefix: 'ig-',
+            isIgnore: false,
+            ttl: 60 * 30, // 30 min
+            tmpDir: null
         }
     }, options);
 
-    if(!this._config.cache.isIgnore) {
+    if (!this._config.cache.isIgnore) {
         this._cache = new CachemanFile({
             tmpDir: this._config.tmpDir
         });
     }
 };
 
-Instagram.prototype._request = function(id, uri, callback){
+Instagram.prototype._request = function (id, uri, callback) {
     const self = this;
-    const req = function(callback){
+    const req = function (callback) {
         request(uri, callback);
     };
     const key = this._config.cache.prefix + id;
 
-    if(!this._cache || this._config.cache.isIgnore){
+    if (!this._cache || this._config.cache.isIgnore) {
         req(callback);
         return;
     }
 
-    this._cache.get(key, function(err, value){
+    this._cache.get(key, function (err, value) {
         if (err) {
             callback(err);
             return;
         }
 
-        if(value === null){
-            req(function(reqErr, response, body){
+        if (value === null) {
+            req(function (reqErr, response, body) {
                 if (!reqErr && response.statusCode === 200) {
                     self._cache.set(key, response, self._config.cache.ttl, function (err, value) {
                         callback(err, response, body);
@@ -80,33 +80,33 @@ Instagram.prototype._request = function(id, uri, callback){
     });
 };
 
-Instagram.prototype.deepScrapeTagPage = function(tag){
+Instagram.prototype.deepScrapeTagPage = function (tag) {
     const self = this;
 
-    return new Promise(function(resolve, reject){
-        self.scrapeTagPage(tag).then(function(tagPage){
-            return Promise.map(tagPage.media, function(media, i, len) {
-                return self.scrapePostPage(media.code).then(function(postPage){
+    return new Promise(function (resolve, reject) {
+        self.scrapeTagPage(tag).then(function (tagPage) {
+            return Promise.map(tagPage.media, function (media, i, len) {
+                return self.scrapePostPage(media.code).then(function (postPage) {
                     tagPage.media[i] = postPage;
                     if (postPage.location != null && postPage.location.has_public_page) {
-                        return self.scrapeLocationPage(postPage.location.id).then(function(locationPage){
+                        return self.scrapeLocationPage(postPage.location.id).then(function (locationPage) {
                             tagPage.media[i].location = locationPage;
                         })
-                            .catch(function(err) {
+                            .catch(function (err) {
                                 console.log("An error occurred calling scrapeLocationPage inside deepScrapeTagPage" + ":" + err);
                             });
                     }
                 })
-                    .catch(function(err) {
+                    .catch(function (err) {
                         console.log("An error occurred calling scrapePostPage inside deepScrapeTagPage" + ":" + err);
                     });
             })
-                .then(function(){ resolve(tagPage); })
-                .catch(function(err) {
+                .then(function () { resolve(tagPage); })
+                .catch(function (err) {
                     console.log("An error occurred resolving tagPage inside deepScrapeTagPage" + ":" + err);
                 });
         })
-            .catch(function(err) {
+            .catch(function (err) {
                 console.log("An error occurred calling scrapeTagPage inside deepScrapeTagPage" + ":" + err);
             });
     });
@@ -114,32 +114,35 @@ Instagram.prototype.deepScrapeTagPage = function(tag){
 };
 
 
-Instagram.prototype.scrapeTagPage = function(tag){
+Instagram.prototype.scrapeTagPage = function (tag) {
     const self = this;
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function (resolve, reject) {
         if (!tag) return reject(new Error('Argument "tag" must be specified'));
 
-        self._request('tag-'+tag, listURL + tag, function(err, response, body){
+        self._request('tag-' + tag, listURL + tag, function (err, response, body) {
             if (err) return reject(err);
 
             var data = scrape(body)
 
-            if(data &&
+            if (data &&
                 data.entry_data &&
                 data.entry_data.TagPage
             ) {
-                var media = (function(TagPage) {
+                var media = (function (TagPage) {
                     if (TagPage.graphql &&
                         TagPage.graphql.hashtag &&
                         TagPage.graphql.hashtag.edge_hashtag_to_media
                     ) {
                         var model = TagPage.graphql.hashtag.edge_hashtag_to_media
 
-                        model.edges = model.edges.map(function(item){
+                        model.edges = model.edges.map(function (item) {
                             item = item.node
                             item.code = item.shortcode
-                            item.caption = item.edge_media_to_caption.edges[0].node.text
+                            item.caption = '';
+                            if (item.edge_media_to_caption.edges.length) {
+                                item.caption = item.edge_media_to_caption.edges[0].node.text
+                            }
                             item.comment = item.edge_media_to_comment
                             item.liked_by = item.edge_liked_by
                             return item
@@ -170,16 +173,16 @@ Instagram.prototype.scrapeTagPage = function(tag){
     });
 };
 
-Instagram.prototype.scrapePostPage = function(code){
+Instagram.prototype.scrapePostPage = function (code) {
     const self = this;
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function (resolve, reject) {
         if (!code) return reject(new Error('Argument "code" must be specified'));
 
-        self._request('post-'+code, postURL + code, function(err, response, body){
+        self._request('post-' + code, postURL + code, function (err, response, body) {
             var data = scrape(body);
             if (data) {
-                resolve(data.entry_data.PostPage[0].graphql.shortcode_media); 
+                resolve(data.entry_data.PostPage[0].graphql.shortcode_media);
             }
             else {
                 reject(new Error('Error scraping post page "' + code + '"'));
@@ -188,13 +191,13 @@ Instagram.prototype.scrapePostPage = function(code){
     });
 };
 
-Instagram.prototype.scrapeLocationPage = function(id){
+Instagram.prototype.scrapeLocationPage = function (id) {
     const self = this;
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function (resolve, reject) {
         if (!id) return reject(new Error('Argument "id" must be specified'));
 
-        self._request('loc-'+id, locURL + id, function(err, response, body){
+        self._request('loc-' + id, locURL + id, function (err, response, body) {
             var data = scrape(body);
 
             if (data) {
